@@ -82,6 +82,15 @@ test.only( 'All widgets sanity test', async ( { page }, testInfo ) => {
 				view: { label: 'View', type: 'hidden' },
 			},
 		},
+			divider: {
+				controls: {
+				align: { label: 'Alignment', type: 'choose', default: '' },
+				style: { type: 'select', label: 'Style', default: 'solid' },
+				//align_tablet: { label: 'Alignment', type: 'choose', default: 'center' },
+				//align_mobile: { label: 'Alignment', type: 'choose', default: 'center' },
+				view: { label: 'View', type: 'hidden' },
+			},
+		},
 
 	};
 
