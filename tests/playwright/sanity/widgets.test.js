@@ -68,115 +68,126 @@ test.only( 'All widgets sanity test', async ( { page }, testInfo ) => {
 		'wp-widget-tag_cloud',
 		'wp-widget-text',
 	];
-//elementor.widgetsCache
+	//elementor.widgetsCache
 	const widgetsConfig = {
 		heading: {
 			controls: {
-				title: { label: 'Title', type: 'textarea', default: 'Add Your Heading Text Here' },
-				link: { label: 'Link', type: 'url', default: { url: '', is_external: '', nofollow: '', custom_attributes: '' } },
-				size: { label: 'Size', type: 'select', default: 'default' },
-				header_size: { label: 'HTML Tag', type: 'select', default: 'h2' },
-				align: { label: 'Alignment', type: 'choose', default: '' },
-				//align_tablet: { label: 'Alignment', type: 'choose', default: 'center' },
-				//align_mobile: { label: 'Alignment', type: 'choose', default: 'center' },
-				view: { label: 'View', type: 'hidden' },
-			},
+			title: { label: 'Title', type: 'textarea', default: 'Add Your Heading Text Here', tab: 'content' },
+			link: { label: 'Link', type: 'url', default: { url: '', is_external: '', nofollow: '', custom_attributes: '' }, tab: 'content' },
+			size: { label: 'Size', type: 'select', default: 'default', tab: 'content' },
+			header_size: { label: 'HTML Tag', type: 'select', default: 'h2', tab: 'content' },
+			align: { label: 'Alignment', type: 'choose', default: '', tab: 'content' },
+			view: { label: 'View', type: 'hidden', tab: 'content' },
+			color: { type: 'color', tab: 'style', section: 'section_title_style', label: 'Text Color', global: { default: 'globals/colors?id=primary' }, name: 'title_color', default: '' },
+},
 		},
-			divider: {
-				controls: {
-				align: { label: 'Alignment', type: 'choose', default: '' },
-				style: { type: 'select', label: 'Style', default: 'solid' },
-				//align_tablet: { label: 'Alignment', type: 'choose', default: 'center' },
-				//align_mobile: { label: 'Alignment', type: 'choose', default: 'center' },
-				view: { label: 'View', type: 'hidden' },
-			},
-		},
-
+ divider: {
+	controls: {
+		align: { label: 'Alignment', type: 'choose', default: '', tab: 'content' },
+		style: { type: 'select', label: 'Style', default: 'solid', tab: 'content' },
+		view: { label: 'View', type: 'hidden', tab: 'content' },
+	},
+},
 	};
 
-	for ( const widgetsName in widgetsConfig ) {
-		const config = widgetsConfig[ widgetsName ];
+for ( const widgetsName in widgetsConfig ) {
+	const config = widgetsConfig[ widgetsName ];
 
-		const widgetId = await editor.addWidget( widgetsName );
-		//console.log( widgetsName );
+	const widgetId = await editor.addWidget( widgetsName );
+	//console.log( widgetsName );
 
-		const element = await editor.getPreviewFrame().locator( `.elementor-element-${ widgetId }` );
-		await editor.page.waitForTimeout( 800 );
+	const element = await editor.getPreviewFrame().locator( `.elementor-element-${ widgetId }` );
+	await editor.page.waitForTimeout( 800 );
+	expect( await element.screenshot( {
+		type: 'jpeg',
+		quality: 70,
+	} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }.jpeg` );
+	for ( const controlName in config.controls ) {
+		const controlConfig = config.controls[ controlName ];
+		if ( 'style' === controlConfig.tab ) {
+		await page.locator( 'text=Style' ).click();
+		}
 
-		expect( await element.screenshot( {
-			type: 'jpeg',
-			quality: 70,
-		} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }.jpeg` );
+		// Focus on top frame.
+		await page.click( `#elementor-panel-header-title` );
 
-		for ( const controlName in config.controls ) {
-			const controlConfig = config.controls[ controlName ];
+		switch ( controlConfig.type ) {
+			case 'textarea':
+				await page.fill( `[data-setting="${ controlName }"]`, `${ widgetsName } ${ controlName } Test` );
 
-			//console.log( controlName );
+				expect( await element.screenshot( {
+					type: 'jpeg',
+					quality: 70,
+				} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }.jpeg` );
 
-			// Focus on top frame.
-			await page.click( `#elementor-panel-header-title` );
+				// Reset.
+				await page.fill( `[data-setting="${ controlName }"]`, controlConfig.default );
 
-			switch ( controlConfig.type ) {
-				case 'textarea':
-					await page.fill( `[data-setting="${ controlName }"]`, `${ widgetsName } ${ controlName } Test` );
+				break;
 
+			case 'select':
+				const options = await page.evaluate( ( args ) => {
+					const domOptions = document.querySelector( `[data-setting="${ args.controlName }"]` ).options;
+					const values = [];
+					for ( let i = 0; i < domOptions.length; i++ ) {
+						// Skip default value.
+						if ( domOptions[ i ].value !== args.defaultValue ) {
+							values.push( domOptions[ i ].value );
+						}
+					}
+					return values;
+				}, { controlName, defaultValue: controlConfig.default } );
+
+				//console.log( controlConfig );
+
+				for ( const optionValue of options ) {
+					await page.selectOption( `[data-setting="${ controlName }"]`, optionValue );
+					//console.log( optionValue );
+					// delay for rendering
+					await page.waitForTimeout( 800 );
 					expect( await element.screenshot( {
 						type: 'jpeg',
 						quality: 70,
-					} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }.jpeg` );
+					} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-${ optionValue }.jpeg` );
+				}
 
-					// Reset.
-					await page.fill( `[data-setting="${ controlName }"]`, controlConfig.default );
+				// Reset.
+				await page.selectOption( `[data-setting="${ controlName }"]`, controlConfig.default );
 
-					break;
+				break;
 
-				case 'select':
-					const options = await page.evaluate( ( args ) => {
-						const domOptions = document.querySelector( `[data-setting="${ args.controlName }"]` ).options;
-						const values = [];
-						for ( let i = 0; i < domOptions.length; i++ ) {
-							// Skip default value.
-							if ( domOptions[ i ].value !== args.defaultValue ) {
-								values.push( domOptions[ i ].value );
-							}
-						}
-						return values;
-					}, { controlName, defaultValue: controlConfig.default } );
+			case 'choose':
+				const labels = page.locator( `.elementor-control-${ controlName } .elementor-choices > label` );
+				const count = await labels.count();
+				for ( let i = 0; i < count; i++ ) {
+					const label = await labels.nth( i );
+					await label.click();
+					const optionValue = await label.getAttribute( 'original-title' );
+					await page.waitForTimeout( 800 );
+					expect( await element.screenshot( {
+						type: 'jpeg',
+						quality: 70,
+					} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-${ optionValue }.jpeg` );
+				}
 
-					//console.log( controlConfig );
-
-					for ( const optionValue of options ) {
-						await page.selectOption( `[data-setting="${ controlName }"]`, optionValue );
-						//console.log( optionValue );
-						// delay for rendering
-						await page.waitForTimeout( 800 );
-						expect( await element.screenshot( {
-							type: 'jpeg',
-							quality: 70,
-						} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-${ optionValue }.jpeg` );
-					}
-
-					// Reset.
-					await page.selectOption( `[data-setting="${ controlName }"]`, controlConfig.default );
-
-					break;
-
-					case 'choose':
-						const labels = page.locator( `.elementor-control-${ controlName } .elementor-choices > label` );
-						const count = await labels.count();
-						for ( let i = 0; i < count; i++ ) {
-								const label = await labels.nth( i );
-								await label.click();
-								const optionValue = await label.getAttribute( 'original-title' );
-								await page.waitForTimeout( 800 );
-								expect( await element.screenshot( {
-									type: 'jpeg',
-									quality: 70,
-								} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-${ optionValue }.jpeg` );
-						}
-
-						break;
-			}
+				break;
+				case 'color':
+				await page.locator( '[aria-label="toggle color picker dialog"]' ).first().click();
+				await page.locator( 'input[type="text"]' ).nth( 2 ).fill( '#FF0071' );
+				expect( await element.screenshot( {
+					type: 'jpeg',
+					quality: 70,
+				} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }.jpeg` );
+				// Click .eicon-globe >> nth=0
+				await page.locator( '.eicon-globe' ).first().click();
+				// Click text=Accent#61CE70
+				await page.locator( 'text=Accent#61CE70' ).click();
+				expect( await element.screenshot( {
+					type: 'jpeg',
+					quality: 70,
+				} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-'global-color-accent'.jpeg` );
+				break;
 		}
 	}
+}
 } );
