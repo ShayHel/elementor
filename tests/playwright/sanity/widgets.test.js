@@ -229,7 +229,6 @@ for ( const widgetsName in widgetsConfig ) {
 					} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-'global-font-secondary'.jpeg` );
 					break;
 			}
-
 				break;
 		}
 	}
