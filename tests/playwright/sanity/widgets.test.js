@@ -192,39 +192,43 @@ for ( const widgetsName in widgetsConfig ) {
 				break;
 
 				case 'popover_toggle':
-				await page.locator( 'text=Typography Edit >> i' ).nth( 2 ).click();
-				// Font Famely
-				await page.locator( 'span[role="textbox"]:has-text("Roboto")' ).click();
-				await page.locator( '[aria-label="Google"] >> text=Aguafina Script' ).click();
-				// Font Size
-				await page.locator( '.elementor-control-typography_font_size input[data-setting="size"]' ).fill( '50' );
-				// Weight
-				await page.locator( '.elementor-control-type-select select[data-setting="typography_font_weight"]' ).selectOption( '900' );
-				// Transform = Uppercase
-				await page.locator( 'text=Transform Default Uppercase Lowercase Capitalize Normal >> select' ).selectOption( 'uppercase' );
-				// Style = italic
-				await page.locator( 'text=Style Default Normal Italic Oblique >> select' ).selectOption( 'italic' );
-				// Decoration = line-through
-				await page.locator( 'text=Decoration Default Underline Overline Line Through None >> select' ).selectOption( 'line-through' );
-				// Line Height
-				await page.locator( '.elementor-control-typography_line_height input[data-setting="size"]' ).fill( '30' );
-				// Letter Spacing
-				await page.locator( '.elementor-control-typography_letter_spacing input[data-setting="size"]' ).fill( '10' );
-				// Word Spacing
-				await page.locator( '.elementor-control-typography_word_spacing input[data-setting="size"]' ).fill( '10' );
-				expect( await element.screenshot( {
-					type: 'jpeg',
-					quality: 70,
-				} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }.jpeg` );
-				//Global fonts
-				// Click text=Typography Edit >> i >> nth=1
-				await page.locator( 'text=Typography Edit >> i' ).nth( 1 ).click();
-				// Click text=PrimarySecondaryTextAccent >> div >> nth=2
-				await page.locator( 'text=PrimarySecondaryTextAccent >> div' ).nth( 2 ).click();
-				expect( await element.screenshot( {
-					type: 'jpeg',
-					quality: 70,
-				} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-'global-font-secondary'.jpeg` );
+					switch ( controlConfig.groupType ) {
+					case 'typography':
+					await page.locator( 'text=Typography Edit >> i' ).nth( 2 ).click();
+					// Font Famely
+					await page.locator( 'span[role="textbox"]:has-text("Roboto")' ).click();
+					await page.locator( '[aria-label="Google"] >> text=Aguafina Script' ).click();
+					// Font Size
+					await page.locator( '.elementor-control-typography_font_size input[data-setting="size"]' ).fill( '50' );
+					// Weight
+					await page.locator( '.elementor-control-type-select select[data-setting="typography_font_weight"]' ).selectOption( '900' );
+					// Transform = Uppercase
+					await page.locator( 'text=Transform Default Uppercase Lowercase Capitalize Normal >> select' ).selectOption( 'uppercase' );
+					// Style = italic
+					await page.locator( 'text=Style Default Normal Italic Oblique >> select' ).selectOption( 'italic' );
+					// Decoration = line-through
+					await page.locator( 'text=Decoration Default Underline Overline Line Through None >> select' ).selectOption( 'line-through' );
+					// Line Height
+					await page.locator( '.elementor-control-typography_line_height input[data-setting="size"]' ).fill( '30' );
+					// Letter Spacing
+					await page.locator( '.elementor-control-typography_letter_spacing input[data-setting="size"]' ).fill( '10' );
+					// Word Spacing
+					await page.locator( '.elementor-control-typography_word_spacing input[data-setting="size"]' ).fill( '10' );
+					expect( await element.screenshot( {
+						type: 'jpeg',
+						quality: 70,
+					} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }.jpeg` );
+					//Global fonts
+					// Click text=Typography Edit >> i >> nth=1
+					await page.locator( 'text=Typography Edit >> i' ).nth( 1 ).click();
+					// Click text=PrimarySecondaryTextAccent >> div >> nth=2
+					await page.locator( 'text=PrimarySecondaryTextAccent >> div' ).nth( 2 ).click();
+					expect( await element.screenshot( {
+						type: 'jpeg',
+						quality: 70,
+					} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-'global-font-secondary'.jpeg` );
+					break;
+			}
 
 				break;
 		}
