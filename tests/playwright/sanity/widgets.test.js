@@ -79,6 +79,7 @@ test( 'All widgets sanity test', async ( { page }, testInfo ) => {
 			align: { label: 'Alignment', type: 'choose', default: '', tab: 'content' },
 			view: { label: 'View', type: 'hidden', tab: 'content' },
 			color: { type: 'color', tab: 'style', section: 'section_title_style', label: 'Text Color', global: { default: 'globals/colors?id=primary' }, name: 'title_color', default: '' },
+			typography_typography: { type: 'popover_toggle', tab: 'style', section: 'section_title_style', label: 'Typography', return_value: 'custom', default: '', groupType: 'typography' },
 },
 		},
  divider: {
@@ -104,10 +105,11 @@ for ( const widgetsName in widgetsConfig ) {
 	} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }.jpeg` );
 	for ( const controlName in config.controls ) {
 		const controlConfig = config.controls[ controlName ];
-		if ( 'style' === controlConfig.tab ) {
+		console.log( controlName );
+		const active = await page.locator( 'div.elementor-component-tab.elementor-active ' ).getAttribute( 'data-tab' );
+		if ( 'style' === controlConfig.tab && active !== 'style' ) {
 		await page.locator( 'text=Style' ).click();
 		}
-
 		// Focus on top frame.
 		await page.click( `#elementor-panel-header-title` );
 
@@ -170,7 +172,8 @@ for ( const widgetsName in widgetsConfig ) {
 					} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-${ optionValue }.jpeg` );
 				}
 
-				break;
+					break;
+
 				case 'color':
 				await page.locator( '[aria-label="toggle color picker dialog"]' ).first().click();
 				await page.locator( 'input[type="text"]' ).nth( 2 ).fill( '#FF0071' );
@@ -186,6 +189,43 @@ for ( const widgetsName in widgetsConfig ) {
 					type: 'jpeg',
 					quality: 70,
 				} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-'global-color-accent'.jpeg` );
+				break;
+
+				case 'popover_toggle':
+				await page.locator( 'text=Typography Edit >> i' ).nth( 2 ).click();
+				// Font Famely
+				await page.locator( 'span[role="textbox"]:has-text("Roboto")' ).click();
+				await page.locator( '[aria-label="Google"] >> text=Aguafina Script' ).click();
+				// Font Size
+				await page.locator( '.elementor-control-typography_font_size input[data-setting="size"]' ).fill( '50' );
+				// Weight
+				await page.locator( '.elementor-control-type-select select[data-setting="typography_font_weight"]' ).selectOption( '900' );
+				// Transform = Uppercase
+				await page.locator( 'text=Transform Default Uppercase Lowercase Capitalize Normal >> select' ).selectOption( 'uppercase' );
+				// Style = italic
+				await page.locator( 'text=Style Default Normal Italic Oblique >> select' ).selectOption( 'italic' );
+				// Decoration = line-through
+				await page.locator( 'text=Decoration Default Underline Overline Line Through None >> select' ).selectOption( 'line-through' );
+				// Line Height
+				await page.locator( '.elementor-control-typography_line_height input[data-setting="size"]' ).fill( '30' );
+				// Letter Spacing
+				await page.locator( '.elementor-control-typography_letter_spacing input[data-setting="size"]' ).fill( '10' );
+				// Word Spacing
+				await page.locator( '.elementor-control-typography_word_spacing input[data-setting="size"]' ).fill( '10' );
+				expect( await element.screenshot( {
+					type: 'jpeg',
+					quality: 70,
+				} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }.jpeg` );
+				//Global fonts
+				// Click text=Typography Edit >> i >> nth=1
+				await page.locator( 'text=Typography Edit >> i' ).nth( 1 ).click();
+				// Click text=PrimarySecondaryTextAccent >> div >> nth=2
+				await page.locator( 'text=PrimarySecondaryTextAccent >> div' ).nth( 2 ).click();
+				expect( await element.screenshot( {
+					type: 'jpeg',
+					quality: 70,
+				} ) ).toMatchSnapshot( `test-screenshots/${ widgetsName }-${ controlName }-'global-font-secondary'.jpeg` );
+
 				break;
 		}
 	}
