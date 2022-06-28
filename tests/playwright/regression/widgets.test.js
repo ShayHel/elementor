@@ -1,6 +1,6 @@
 const { test, expect } = require( '@playwright/test' );
 const WpAdminPage = require( '../pages/wp-admin-page.js' );
-const { addWidget } = require( '../regression/utils.js' );
+const { addWidget } = require( './utils.js' );
 
 test.only( 'All widgets sanity test', async ( { page }, testInfo ) => {
 	const wpAdmin = new WpAdminPage( page, testInfo ),
@@ -92,29 +92,22 @@ test.only( 'All widgets sanity test', async ( { page }, testInfo ) => {
 },
 	};
 
-
 for ( const widgetsName in widgetsConfig ) {
 	const config = widgetsConfig[ widgetsName ];
-	addWidget( widgetsName );
+
+	const element = await addWidget( editor, widgetsName );
 
 	//console.log( widgetsName );
 
-	
+	//moveToTab( config );
+
 	for ( const controlName in config.controls ) {
 		const controlConfig = config.controls[ controlName ];
-
+		console.log( controlName );
 		const active = await page.locator( 'div.elementor-component-tab.elementor-active ' ).getAttribute( 'data-tab' );
 		if ( 'style' === controlConfig.tab && active !== 'style' ) {
 		await page.locator( 'text=Style' ).click();
 		}
-
-		moveToTab( controlConfig );
-
-		controlCallbacks[ controlConfig.type ]();
-
-
-		console.log( controlName );
-	
 		// Focus on top frame.
 		await page.click( `#elementor-panel-header-title` );
 
